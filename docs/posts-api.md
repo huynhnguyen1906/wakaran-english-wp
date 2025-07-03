@@ -1,210 +1,139 @@
-# Posts API Documentation
+# 投稿 API v1 ドキュメント
 
-## Overview
+## エンドポイント
 
-REST API endpoints for WordPress blog posts with view counter functionality.
+### 1. 全投稿を取得
 
-## Endpoints
+**GET** `/wp-json/api/v1/posts`
 
-### 1. Get All Posts
-
-**GET** `/posts`
-
-Get all published blog posts.
-
-**Parameters:**
-
-- `per_page` (optional): Number of posts to return. Default: all posts (-1)
-
-**Example Request:**
-
-```
-GET /wp-json/api/v1/posts
-GET /wp-json/api/v1/posts?per_page=10
-```
-
-**Response:**
+**レスポンス例:**
 
 ```json
 {
 	"posts": [
 		{
-			"id": 1,
-			"title": "Sample Blog Post",
-			"content": "<p>Full HTML content of the post...</p>",
-			"excerpt": "Short description of the post...",
-			"slug": "sample-blog-post",
+			"id": 61,
+			"title": "サンプル投稿タイトル",
+			"content": "<p>投稿の完全なHTMLコンテンツがここに表示されます。</p>",
+			"excerpt": "投稿の短い抜粋テキスト...",
+			"slug": "sample-post-title",
 			"date": {
 				"published": "2025-07-03T10:30:00+00:00",
 				"published_formatted": "July 3, 2025"
 			},
 			"featured_image": {
-				"id": 15,
-				"url": "http://domain.com/wp-content/uploads/2025/07/image.jpg",
-				"thumbnail": "http://domain.com/wp-content/uploads/2025/07/image-150x150.jpg",
-				"medium": "http://domain.com/wp-content/uploads/2025/07/image-300x200.jpg",
-				"large": "http://domain.com/wp-content/uploads/2025/07/image-1024x683.jpg",
-				"alt": "Image alt text"
+				"id": 25,
+				"url": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/image.jpg",
+				"thumbnail": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/image-150x150.jpg",
+				"medium": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/image-300x200.jpg",
+				"large": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/image-1024x683.jpg",
+				"alt": "画像のalt属性"
 			},
-			"views": 25,
+			"views": 15,
 			"author": {
 				"id": 1,
-				"name": "Admin User"
+				"name": "管理者"
 			}
 		}
 	]
 }
 ```
 
----
+### 2. ID で投稿を取得 (ビュー数増加)
 
-### 2. Get Post by ID
+**GET** `/wp-json/api/v1/posts/{id}`
 
-**GET** `/posts/{id}`
-
-Get a single post by ID. This endpoint increments the view counter.
-
-**Parameters:**
-
-- `id` (required): Post ID
-
-**Example Request:**
-
-```
-GET /wp-json/api/v1/posts/1
-```
-
-**Response:**
+**レスポンス例:**
 
 ```json
 {
-	"id": 1,
-	"title": "Sample Blog Post",
-	"content": "<p>Full HTML content of the post...</p>",
-	"excerpt": "Short description of the post...",
-	"slug": "sample-blog-post",
+	"id": 61,
+	"title": "サンプル投稿タイトル",
+	"content": "<p>投稿の完全なHTMLコンテンツがここに表示されます。</p>",
+	"excerpt": "投稿の短い抜粋テキスト...",
+	"slug": "sample-post-title",
 	"date": {
 		"published": "2025-07-03T10:30:00+00:00",
 		"published_formatted": "July 3, 2025"
 	},
 	"featured_image": {
-		"id": 15,
-		"url": "http://domain.com/wp-content/uploads/2025/07/image.jpg",
-		"thumbnail": "http://domain.com/wp-content/uploads/2025/07/image-150x150.jpg",
-		"medium": "http://domain.com/wp-content/uploads/2025/07/image-300x200.jpg",
-		"large": "http://domain.com/wp-content/uploads/2025/07/image-1024x683.jpg",
-		"alt": "Image alt text"
+		"id": 25,
+		"url": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/image.jpg",
+		"thumbnail": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/image-150x150.jpg",
+		"medium": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/image-300x200.jpg",
+		"large": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/image-1024x683.jpg",
+		"alt": "画像のalt属性"
 	},
-	"views": 26,
+	"views": 16,
 	"author": {
 		"id": 1,
-		"name": "Admin User"
+		"name": "管理者"
 	}
 }
 ```
 
----
+### 3. スラッグで投稿を取得 (ビュー数増加)
 
-### 3. Get Post by Slug
+**GET** `/wp-json/api/v1/posts/slug/{slug}`
 
-**GET** `/posts/slug/{slug}`
+**レスポンス例:** 上記「ID で投稿を取得」と同じ
 
-Get a single post by slug. This endpoint increments the view counter.
+### 4. 人気投稿を取得 (ビュー数上位 5 件)
 
-**Parameters:**
+**GET** `/wp-json/api/v1/posts/popular`
 
-- `slug` (required): Post slug
-
-**Example Request:**
-
-```
-GET /wp-json/api/v1/posts/slug/sample-blog-post
-```
-
-**Response:**
-Same as "Get Post by ID" above.
-
----
-
-### 4. Get Popular Posts
-
-**GET** `/posts/popular`
-
-Get top 5 posts with highest view counts.
-
-**Example Request:**
-
-```
-GET /wp-json/api/v1/posts/popular
-```
-
-**Response:**
+**レスポンス例:**
 
 ```json
 {
 	"posts": [
 		{
-			"id": 3,
-			"title": "Most Popular Post",
-			"content": "<p>Content...</p>",
-			"excerpt": "Excerpt...",
+			"id": 55,
+			"title": "最も人気の投稿",
+			"content": "<p>最も人気の投稿内容...</p>",
+			"excerpt": "人気投稿の抜粋...",
 			"slug": "most-popular-post",
 			"date": {
 				"published": "2025-07-01T15:20:00+00:00",
 				"published_formatted": "July 1, 2025"
 			},
 			"featured_image": null,
-			"views": 150,
+			"views": 250,
 			"author": {
 				"id": 1,
-				"name": "Admin User"
+				"name": "管理者"
 			}
 		},
 		{
-			"id": 1,
-			"title": "Second Popular Post",
-			"content": "<p>Content...</p>",
-			"excerpt": "Excerpt...",
+			"id": 42,
+			"title": "2番目に人気の投稿",
+			"content": "<p>2番目に人気の投稿内容...</p>",
+			"excerpt": "2番目の抜粋...",
 			"slug": "second-popular-post",
 			"date": {
 				"published": "2025-07-02T09:15:00+00:00",
 				"published_formatted": "July 2, 2025"
 			},
 			"featured_image": {
-				"id": 20,
-				"url": "http://domain.com/wp-content/uploads/2025/07/popular.jpg",
-				"thumbnail": "http://domain.com/wp-content/uploads/2025/07/popular-150x150.jpg",
-				"medium": "http://domain.com/wp-content/uploads/2025/07/popular-300x200.jpg",
-				"large": "http://domain.com/wp-content/uploads/2025/07/popular-1024x683.jpg",
-				"alt": "Popular post image"
+				"id": 30,
+				"url": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/popular.jpg",
+				"thumbnail": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/popular-150x150.jpg",
+				"medium": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/popular-300x200.jpg",
+				"large": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/popular-1024x683.jpg",
+				"alt": "人気投稿の画像"
 			},
-			"views": 89,
+			"views": 189,
 			"author": {
 				"id": 1,
-				"name": "Admin User"
+				"name": "管理者"
 			}
 		}
 	]
 }
 ```
 
-## Error Responses
+## 注意事項
 
-### Post Not Found
-
-```json
-{
-	"code": "not_found",
-	"message": "Post not found",
-	"data": {
-		"status": 404
-	}
-}
-```
-
-## Notes
-
-- **View Counter**: Only `/posts/{id}` and `/posts/slug/{slug}` endpoints increment view counters
-- **Featured Image**: Returns `null` if no featured image is set
-- **Content**: HTML content is processed through WordPress filters
-- **Ordering**: Default order is by date (newest first), popular posts are ordered by view count (highest first)
+- `/posts/{id}` と `/posts/slug/{slug}` はビューカウンターを増加させます
+- `featured_image` は設定されていない場合 `null` になります
+- `/posts/popular` はビュー数の多い順に最大 5 件を返します

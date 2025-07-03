@@ -21,20 +21,6 @@ function register_feature_projects_api() {
         'callback' => 'get_feature_projects_api',
         'permission_callback' => '__return_true', // Public endpoint
     ));
-
-    // Register route: GET /wp-json/api/v1/feature-projects/{id}
-    register_rest_route('api/v1', '/feature-projects/(?P<id>\d+)', array(
-        'methods' => 'GET',
-        'callback' => 'get_single_feature_project_api',
-        'permission_callback' => '__return_true', // Public endpoint
-        'args' => array(
-            'id' => array(
-                'validate_callback' => function($param, $request, $key) {
-                    return is_numeric($param);
-                }
-            ),
-        ),
-    ));
 }
 add_action('rest_api_init', 'register_feature_projects_api');
 
@@ -76,28 +62,6 @@ function get_feature_projects_api($request) {
     );
     
     return new WP_REST_Response($response_data, 200);
-}
-
-/**
- * Get single Feature Project
- * 
- * @param WP_REST_Request $request
- * @return WP_REST_Response|WP_Error
- */
-function get_single_feature_project_api($request) {
-    $project_id = intval($request['id']);
-    
-    // Get the post
-    $post = get_post($project_id);
-    
-    // Check if post exists and is feature_project type
-    if (!$post || $post->post_type !== 'feature_project' || $post->post_status !== 'publish') {
-        return new WP_Error('not_found', 'Feature project not found', array('status' => 404));
-    }
-    
-    $project_data = format_feature_project_data($post);
-    
-    return new WP_REST_Response($project_data, 200);
 }
 
 /**

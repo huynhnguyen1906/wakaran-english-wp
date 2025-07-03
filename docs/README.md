@@ -1,38 +1,38 @@
-# Wakaran Engineering WordPress API Documentation
+# Wakaran Engineering WordPress API ドキュメント
 
-This is a headless WordPress installation with custom REST API endpoints for Posts and Feature Projects.
+これはカスタム REST API エンドポイントを持つヘッドレス WordPress インストールです。投稿とフィーチャープロジェクト用の API を提供します。
 
-## Base URL
+## ベース URL
 
 ```
 http://your-domain.com/wp-json/api/v1/
 ```
 
-## Available APIs
+## 利用可能な API
 
-1. [Posts API](./posts-api.md) - WordPress blog posts with view counter
-2. [Feature Projects API](./feature-projects-api.md) - Custom post type for project showcases
+1. [投稿 API](./posts-api.md) - ビューカウンター機能付き WordPress 投稿
+2. [フィーチャープロジェクト API](./feature-projects-api.md) - プロジェクトショーケース用カスタム投稿タイプ
 
-## Authentication
+## 認証
 
-All endpoints are publicly accessible (no authentication required).
+すべてのエンドポイントは公開アクセス可能です（認証不要）。
 
-## Response Format
+## レスポンス形式
 
-All responses are in JSON format with proper HTTP status codes.
+すべてのレスポンスは適切な HTTP ステータスコードを持つ JSON 形式です。
 
-## Error Handling
+## エラーハンドリング
 
-- `404` - Resource not found
-- `403` - Access forbidden
-- `500` - Server error
+- `404` - リソースが見つかりません
+- `403` - アクセス禁止
+- `500` - サーバーエラー
 
-Error response format:
+エラーレスポンス形式:
 
 ```json
 {
 	"code": "error_code",
-	"message": "Error description",
+	"message": "エラーの説明",
 	"data": {
 		"status": 404
 	}
