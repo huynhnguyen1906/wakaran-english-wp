@@ -10,7 +10,7 @@
 
 ```json
 {
-	"feature_projects": [
+	"projects": [
 		{
 			"id": 56,
 			"title": "Eコマースサイト制作プロジェクト",
@@ -25,7 +25,8 @@
 				"medium": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/ecommerce-project-300x200.png",
 				"large": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/ecommerce-project-1024x683.png",
 				"alt": "Eコマースプロジェクトのスクリーンショット"
-			}
+			},
+			"youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 		},
 		{
 			"id": 45,
@@ -41,7 +42,8 @@
 				"medium": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/corporate-site-300x200.jpg",
 				"large": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/corporate-site-1024x683.jpg",
 				"alt": "コーポレートサイトのデザイン"
-			}
+			},
+			"youtube_url": null
 		},
 		{
 			"id": 32,
@@ -50,7 +52,8 @@
 				"project_date": "2025-06-28T00:00:00+00:00",
 				"project_date_formatted": "June 28, 2025"
 			},
-			"featured_image": null
+			"featured_image": null,
+			"youtube_url": "https://www.youtube.com/watch?v=abcd1234567"
 		}
 	]
 }
@@ -60,4 +63,6 @@
 
 - フィーチャープロジェクトには 1 つのエンドポイントのみ（全取得）
 - `featured_image` は設定されていない場合 `null` になります
-- タイトル、プロジェクト日付、画像のみのシンプルな構造です
+- `youtube_url` は設定されていない場合 `null` になります
+- タイトル、プロジェクト日付、画像、YouTube URL のシンプルな構造です
+- **この API はサーバーサイドからのみ呼び出してください**

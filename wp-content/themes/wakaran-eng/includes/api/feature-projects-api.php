@@ -73,6 +73,7 @@ function get_feature_projects_api($request) {
 function format_feature_project_data($post) {
     // Get custom meta
     $project_date = get_post_meta($post->ID, '_project_date', true);
+    $youtube_url = get_post_meta($post->ID, '_youtube_url', true);
     
     // Get featured image
     $featured_image = null;
@@ -95,6 +96,7 @@ function format_feature_project_data($post) {
             'project_date' => $project_date ? date('c', strtotime($project_date)) : null,
             'project_date_formatted' => $project_date ? date('F j, Y', strtotime($project_date)) : null
         ),
-        'featured_image' => $featured_image
+        'featured_image' => $featured_image,
+        'youtube_url' => !empty($youtube_url) ? $youtube_url : null
     );
 }

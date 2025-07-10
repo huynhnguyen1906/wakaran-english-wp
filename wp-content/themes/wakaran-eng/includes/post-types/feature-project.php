@@ -97,8 +97,14 @@ function feature_project_meta_box_callback($post) {
     
     // Get current values
     $project_date = get_post_meta($post->ID, '_project_date', true);
+    $youtube_url = get_post_meta($post->ID, '_youtube_url', true);
     
+    echo '<p><label for="project_date"><strong>Project Date:</strong></label></p>';
     echo '<input type="date" id="project_date" name="project_date" value="' . esc_attr($project_date) . '" style="width: 100%;" />';
+    
+    echo '<p style="margin-top: 15px;"><label for="youtube_url"><strong>YouTube URL:</strong></label></p>';
+    echo '<input type="url" id="youtube_url" name="youtube_url" value="' . esc_attr($youtube_url) . '" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%;" />';
+    echo '<p class="description">YouTubeビデオのURLを入力してください（オプション）</p>';
 }
 
 /**
@@ -119,6 +125,16 @@ function save_feature_project_meta_fields($post_id) {
     // Save project date
     if (isset($_POST['project_date'])) {
         update_post_meta($post_id, '_project_date', sanitize_text_field($_POST['project_date']));
+    }
+    
+    // Save YouTube URL
+    if (isset($_POST['youtube_url'])) {
+        $youtube_url = sanitize_url($_POST['youtube_url']);
+        if (!empty($youtube_url)) {
+            update_post_meta($post_id, '_youtube_url', $youtube_url);
+        } else {
+            delete_post_meta($post_id, '_youtube_url');
+        }
     }
 }
 add_action('save_post', 'save_feature_project_meta_fields');
