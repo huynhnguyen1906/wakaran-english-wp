@@ -132,8 +132,139 @@
 }
 ```
 
+### 5. ID で投稿のおすすめを取得
+
+**GET** `/wp-json/api/v1/posts/{id}/recommend`
+
+指定された投稿 ID に基づいて、関連する投稿を最大 5 件返します。
+
+**動作ロジック:**
+
+1. まず同じカテゴリの投稿を検索
+2. 不足分はランダムに投稿を選択
+3. 現在の投稿は除外
+
+**レスポンス例:**
+
+```json
+{
+	"recommended_posts": [
+		{
+			"id": 72,
+			"title": "関連投稿タイトル1",
+			"content": "<p>関連投稿の内容...</p>",
+			"excerpt": "関連投稿の抜粋...",
+			"slug": "related-post-1",
+			"date": {
+				"published": "2025-07-04T14:20:00+00:00",
+				"published_formatted": "July 4, 2025"
+			},
+			"featured_image": {
+				"id": 35,
+				"url": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/related1.jpg",
+				"thumbnail": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/related1-150x150.jpg",
+				"medium": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/related1-300x200.jpg",
+				"large": "http://api.wakaran-eng.com/wp-content/uploads/2025/07/related1-1024x683.jpg",
+				"alt": "関連画像1"
+			},
+			"views": 45,
+			"author": {
+				"id": 1,
+				"name": "管理者"
+			}
+		},
+		{
+			"id": 83,
+			"title": "関連投稿タイトル2",
+			"content": "<p>別の関連投稿内容...</p>",
+			"excerpt": "別の関連投稿の抜粋...",
+			"slug": "related-post-2",
+			"date": {
+				"published": "2025-07-03T11:45:00+00:00",
+				"published_formatted": "July 3, 2025"
+			},
+			"featured_image": null,
+			"views": 32,
+			"author": {
+				"id": 2,
+				"name": "投稿者"
+			}
+		}
+		// ... 最大5件まで
+	]
+}
+```
+
+### 6. スラッグで投稿のおすすめを取得
+
+**GET** `/wp-json/api/v1/posts/slug/{slug}/recommend`
+
+指定されたスラッグに基づいて、関連する投稿を最大 5 件返します。
+
+**対応形式:**
+
+- 通常のスラッグ: `hello-world`
+- 日本語スラッグ: `わからんよ`
+- URL エンコード済み: `%e3%82%8f%e3%81%8b%e3%82%89%e3%82%93%e3%82%88`
+
+**動作ロジック:**
+
+1. まず同じカテゴリの投稿を検索
+2. 不足分はランダムに投稿を選択
+3. 現在の投稿は除外
+
+**レスポンス例:**
+
+```json
+{
+	"recommended_posts": [
+		// 上記と同じ形式で最大5件
+	]
+}
+```
+
 ## 注意事項
 
 - `/posts/{id}` と `/posts/slug/{slug}` はビューカウンターを増加させます
 - `featured_image` は設定されていない場合 `null` になります
 - `/posts/popular` はビュー数の多い順に最大 5 件を返します
+- **recommend APIs は同じカテゴリの投稿を優先的に返し、不足分はランダムに選択します**
+- **recommend APIs はビューカウンターを増加させません**
+
+## 使用例
+
+### 基本的な投稿取得
+
+```javascript
+// 全投稿取得
+fetch("/wp-json/api/v1/posts");
+
+// ID で取得（ビュー数+1）
+fetch("/wp-json/api/v1/posts/123");
+
+// スラッグで取得（ビュー数+1）
+fetch("/wp-json/api/v1/posts/slug/sample-post");
+
+// 日本語スラッグで取得
+fetch("/wp-json/api/v1/posts/slug/わからんよ");
+```
+
+### おすすめ投稿取得
+
+```javascript
+// ID でおすすめ取得
+fetch("/wp-json/api/v1/posts/123/recommend");
+
+// スラッグでおすすめ取得
+fetch("/wp-json/api/v1/posts/slug/sample-post/recommend");
+
+// 日本語スラッグでおすすめ取得
+fetch("/wp-json/api/v1/posts/slug/わからんよ/recommend");
+```
+
+### 人気投稿取得
+
+```javascript
+// トップ5人気投稿
+fetch("/wp-json/api/v1/posts/popular");
+```

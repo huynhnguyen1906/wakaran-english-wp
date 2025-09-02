@@ -37,7 +37,7 @@ function register_posts_v1_api() {
     ));
 
     // 3. GET Post by Slug
-    register_rest_route('api/v1', '/posts/slug/(?P<slug>[a-zA-Z0-9-]+)', array(
+    register_rest_route('api/v1', '/posts/slug/(?P<slug>.+)', array(
         'methods' => 'GET',
         'callback' => 'wakaran_get_post_by_slug_api',
         'permission_callback' => '__return_true',
@@ -47,6 +47,27 @@ function register_posts_v1_api() {
     register_rest_route('api/v1', '/posts/popular', array(
         'methods' => 'GET',
         'callback' => 'wakaran_get_popular_posts_api',
+        'permission_callback' => '__return_true',
+    ));
+
+    // 5. GET Recommended Posts by Post ID
+    register_rest_route('api/v1', '/posts/(?P<id>\d+)/recommend', array(
+        'methods' => 'GET',
+        'callback' => 'wakaran_get_recommend_posts_by_id_api',
+        'permission_callback' => '__return_true',
+        'args' => array(
+            'id' => array(
+                'validate_callback' => function($param, $request, $key) {
+                    return is_numeric($param);
+                }
+            ),
+        ),
+    ));
+
+    // 6. GET Recommended Posts by Slug
+    register_rest_route('api/v1', '/posts/slug/(?P<slug>.+)/recommend', array(
+        'methods' => 'GET',
+        'callback' => 'wakaran_get_recommend_posts_by_slug_api',
         'permission_callback' => '__return_true',
     ));
 }
@@ -122,9 +143,77 @@ function wakaran_get_post_by_id_api($request) {
  */
 function wakaran_get_post_by_slug_api($request) {
     try {
-        $slug = sanitize_text_field($request['slug']);
+        $slug = $request['slug'];
         
-        $post = get_page_by_path($slug, OBJECT, 'post');
+        // Decode URL-encoded slug (for Japanese characters, etc.)
+        $decoded_slug = urldecode($slug);
+        
+        // Sanitize the decoded slug
+        $sanitized_slug = sanitize_text_field($decoded_slug);
+        
+        // Try to find post by slug - Method 1: get_page_by_path
+        $post = get_page_by_path($sanitized_slug, OBJECT, 'post');
+        
+        // If not found with decoded slug, try with original slug as fallback
+        if (!$post) {
+            $post = get_page_by_path($slug, OBJECT, 'post');
+        }
+        
+        // Method 2: WP_Query with decoded slug
+        if (!$post) {
+            $query = new WP_Query(array(
+                'name' => $sanitized_slug,
+                'post_type' => 'post',
+                'post_status' => 'publish',
+                'posts_per_page' => 1
+            ));
+            
+            if ($query->have_posts()) {
+                $post = $query->posts[0];
+            }
+            wp_reset_postdata();
+        }
+        
+        // Method 3: WP_Query with original slug
+        if (!$post) {
+            $query = new WP_Query(array(
+                'name' => $slug,
+                'post_type' => 'post',
+                'post_status' => 'publish',
+                'posts_per_page' => 1
+            ));
+            
+            if ($query->have_posts()) {
+                $post = $query->posts[0];
+            }
+            wp_reset_postdata();
+        }
+        
+        // Method 4: Search by post_name directly in database
+        if (!$post) {
+            global $wpdb;
+            $post_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'post' AND post_status = 'publish'",
+                $sanitized_slug
+            ));
+            
+            if ($post_id) {
+                $post = get_post($post_id);
+            }
+        }
+        
+        // Method 5: Search by original slug in database
+        if (!$post) {
+            global $wpdb;
+            $post_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'post' AND post_status = 'publish'",
+                $slug
+            ));
+            
+            if ($post_id) {
+                $post = get_post($post_id);
+            }
+        }
         
         if (!$post || $post->post_status !== 'publish') {
             return new WP_Error('not_found', 'Post not found', array('status' => 404));
@@ -228,4 +317,188 @@ function wakaran_format_post_data($post, $track_view = false) {
             'name' => get_the_author_meta('display_name', $post->post_author)
         )
     );
+}
+
+/**
+ * 5. Get recommended posts by post ID
+ */
+function wakaran_get_recommend_posts_by_id_api($request) {
+    try {
+        $post_id = intval($request['id']);
+        
+        $post = get_post($post_id);
+        
+        if (!$post || $post->post_type !== 'post' || $post->post_status !== 'publish') {
+            return new WP_Error('not_found', 'Post not found', array('status' => 404));
+        }
+        
+        $recommended_posts = wakaran_get_recommended_posts($post_id);
+        
+        return new WP_REST_Response(array('recommended_posts' => $recommended_posts), 200);
+    } catch (Exception $e) {
+        return new WP_Error('server_error', 'Error: ' . $e->getMessage(), array('status' => 500));
+    }
+}
+
+/**
+ * 6. Get recommended posts by slug
+ */
+function wakaran_get_recommend_posts_by_slug_api($request) {
+    try {
+        $slug = $request['slug'];
+        
+        // Decode URL-encoded slug (for Japanese characters, etc.)
+        $decoded_slug = urldecode($slug);
+        
+        // Sanitize the decoded slug
+        $sanitized_slug = sanitize_text_field($decoded_slug);
+        
+        // Try to find post by slug - Method 1: get_page_by_path
+        $post = get_page_by_path($sanitized_slug, OBJECT, 'post');
+        
+        // If not found with decoded slug, try with original slug as fallback
+        if (!$post) {
+            $post = get_page_by_path($slug, OBJECT, 'post');
+        }
+        
+        // Method 2: WP_Query with decoded slug
+        if (!$post) {
+            $query = new WP_Query(array(
+                'name' => $sanitized_slug,
+                'post_type' => 'post',
+                'post_status' => 'publish',
+                'posts_per_page' => 1
+            ));
+            
+            if ($query->have_posts()) {
+                $post = $query->posts[0];
+            }
+            wp_reset_postdata();
+        }
+        
+        // Method 3: WP_Query with original slug
+        if (!$post) {
+            $query = new WP_Query(array(
+                'name' => $slug,
+                'post_type' => 'post',
+                'post_status' => 'publish',
+                'posts_per_page' => 1
+            ));
+            
+            if ($query->have_posts()) {
+                $post = $query->posts[0];
+            }
+            wp_reset_postdata();
+        }
+        
+        // Method 4: Search by post_name directly in database
+        if (!$post) {
+            global $wpdb;
+            $post_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'post' AND post_status = 'publish'",
+                $sanitized_slug
+            ));
+            
+            if ($post_id) {
+                $post = get_post($post_id);
+            }
+        }
+        
+        // Method 5: Search by original slug in database
+        if (!$post) {
+            global $wpdb;
+            $post_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'post' AND post_status = 'publish'",
+                $slug
+            ));
+            
+            if ($post_id) {
+                $post = get_post($post_id);
+            }
+        }
+        
+        if (!$post || $post->post_status !== 'publish') {
+            return new WP_Error('not_found', 'Post not found', array('status' => 404));
+        }
+        
+        $recommended_posts = wakaran_get_recommended_posts($post->ID);
+        
+        return new WP_REST_Response(array('recommended_posts' => $recommended_posts), 200);
+    } catch (Exception $e) {
+        return new WP_Error('server_error', 'Error: ' . $e->getMessage(), array('status' => 500));
+    }
+}
+
+/**
+ * Helper function to get recommended posts
+ * Logic: Get posts from same categories first, then fill with random posts if needed
+ */
+function wakaran_get_recommended_posts($post_id) {
+    $recommended_posts = array();
+    $max_posts = 5;
+    
+    // Get categories of the current post
+    $categories = get_the_category($post_id);
+    $category_ids = array();
+    
+    if (!empty($categories)) {
+        foreach ($categories as $category) {
+            $category_ids[] = $category->term_id;
+        }
+    }
+    
+    // First: Try to get posts from same categories
+    if (!empty($category_ids)) {
+        $args = array(
+            'post_type' => 'post',
+            'post_status' => 'publish',
+            'posts_per_page' => $max_posts,
+            'post__not_in' => array($post_id), // Exclude current post
+            'category__in' => $category_ids,
+            'orderby' => 'rand', // Random order for variety
+        );
+        
+        $query = new WP_Query($args);
+        
+        if ($query->have_posts()) {
+            while ($query->have_posts()) {
+                $query->the_post();
+                $post = get_post();
+                $recommended_posts[] = wakaran_format_post_data($post, false);
+            }
+            wp_reset_postdata();
+        }
+    }
+    
+    // If we don't have enough posts, fill with random posts
+    if (count($recommended_posts) < $max_posts) {
+        $remaining_posts = $max_posts - count($recommended_posts);
+        
+        // Get IDs of posts already selected
+        $exclude_ids = array($post_id);
+        foreach ($recommended_posts as $rec_post) {
+            $exclude_ids[] = $rec_post['id'];
+        }
+        
+        $random_args = array(
+            'post_type' => 'post',
+            'post_status' => 'publish',
+            'posts_per_page' => $remaining_posts,
+            'post__not_in' => $exclude_ids,
+            'orderby' => 'rand',
+        );
+        
+        $random_query = new WP_Query($random_args);
+        
+        if ($random_query->have_posts()) {
+            while ($random_query->have_posts()) {
+                $random_query->the_post();
+                $post = get_post();
+                $recommended_posts[] = wakaran_format_post_data($post, false);
+            }
+            wp_reset_postdata();
+        }
+    }
+    
+    return $recommended_posts;
 }
