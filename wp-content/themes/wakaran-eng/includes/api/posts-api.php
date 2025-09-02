@@ -36,20 +36,6 @@ function register_posts_v1_api() {
         ),
     ));
 
-    // 3. GET Post by Slug
-    register_rest_route('api/v1', '/posts/slug/(?P<slug>.+)', array(
-        'methods' => 'GET',
-        'callback' => 'wakaran_get_post_by_slug_api',
-        'permission_callback' => '__return_true',
-    ));
-
-    // 4. GET Top 5 Posts by Views
-    register_rest_route('api/v1', '/posts/popular', array(
-        'methods' => 'GET',
-        'callback' => 'wakaran_get_popular_posts_api',
-        'permission_callback' => '__return_true',
-    ));
-
     // 5. GET Recommended Posts by Post ID
     register_rest_route('api/v1', '/posts/(?P<id>\d+)/recommend', array(
         'methods' => 'GET',
@@ -64,10 +50,24 @@ function register_posts_v1_api() {
         ),
     ));
 
-    // 6. GET Recommended Posts by Slug
-    register_rest_route('api/v1', '/posts/slug/(?P<slug>.+)/recommend', array(
+    // 4. GET Top 5 Posts by Views
+    register_rest_route('api/v1', '/posts/popular', array(
+        'methods' => 'GET',
+        'callback' => 'wakaran_get_popular_posts_api',
+        'permission_callback' => '__return_true',
+    ));
+
+    // 6. GET Recommended Posts by Slug - Use different route structure
+    register_rest_route('api/v1', '/recommend/slug/(?P<slug>.+)', array(
         'methods' => 'GET',
         'callback' => 'wakaran_get_recommend_posts_by_slug_api',
+        'permission_callback' => '__return_true',
+    ));
+
+    // 3. GET Post by Slug
+    register_rest_route('api/v1', '/posts/slug/(?P<slug>.+)', array(
+        'methods' => 'GET',
+        'callback' => 'wakaran_get_post_by_slug_api',
         'permission_callback' => '__return_true',
     ));
 }
